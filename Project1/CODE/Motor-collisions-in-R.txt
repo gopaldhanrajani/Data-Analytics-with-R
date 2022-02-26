@@ -1,0 +1,302 @@
+# Exploratory Data Analysis
+
+data <- read.csv("Motor_Vehicle_Collisions_-_Crashes.csv", header = TRUE)
+head(data)
+
+summary(data)
+
+# Correlation
+#-------------/--------------
+res <- cor(data[,c('NUMBER.OF.PEDESTRIANS.INJURED', 'NUMBER.OF.PEDESTRIANS.KILLED','NUMBER.OF.CYCLIST.INJURED','NUMBER.OF.CYCLIST.KILLED',
+                   'NUMBER.OF.MOTORIST.INJURED','NUMBER.OF.MOTORIST.KILLED')])
+round(res, 2)
+
+library(corrplot)
+corrplot(res,method = "color",type = "upper", addCoef.col = "black", tl.cex = 0.6,number.cex = 0.75)
+#---------------/-----------------
+
+# Data cleaning
+#--------------/-------------
+data <- na.omit(data)
+str(data)
+data$CRASH.DATE = as.Date(data$CRASH.DATE,"%m/%d/%Y")
+data$CRASH.DATE.YEAR = as.numeric(format(data$CRASH.DATE,"%Y"))
+data$CRASH.DATE.MONTH = as.factor(format(data$CRASH.DATE,"%m"))
+levels(data$CRASH.DATE.MONTH) <- c('Jan', 'Feb', 'Mar',"Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec")
+#-------------/--------------------
+
+# Bar plot for People injured and killed with year with county
+# --------------/--------------
+new_data3 = aggregate(cbind(data$NUMBER.OF.PERSONS.INJURED, data$NUMBER.OF.PERSONS.KILLED, 
+                            data$NUMBER.OF.PEDESTRIANS.INJURED, data$NUMBER.OF.PEDESTRIANS.KILLED, 
+                            data$NUMBER.OF.CYCLIST.INJURED, data$NUMBER.OF.CYCLIST.KILLED,
+                            data$NUMBER.OF.MOTORIST.INJURED, data$NUMBER.OF.MOTORIST.KILLED), 
+                      list(data$BOROUGH,data$CRASH.DATE.YEAR),FUN = sum)
+new_data3$sum_all = new_data3$V3 + new_data3$V5 + new_data3$V7 + new_data3$V4 + new_data3$V6 + new_data3$V8
+
+# Segregation by borough
+ggplot(data=new_data3,aes(y=sum_all,x=factor(Group.2)))+
+  geom_bar(stat = "identity") + 
+  geom_col(aes(fill = Group.2))+
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(), legend.position = "none") + 
+  facet_wrap(~Group.1) +
+  coord_flip() +
+  labs(title = "NO OF PEOPLE INJURED + KILLED IN DIFFERENT COUNTY VS YEAR")
+
+# Stacked bar chart
+ggplot(data=new_data3,mapping = aes(y=sum_all,x=factor(Group.2), fill=Group.1))+
+  geom_bar(stat = "identity", position = position_stack(reverse=TRUE)) + 
+  guides(fill = guide_legend(reverse=TRUE)) + 
+  labs(title = "NO OF PEOPLE INJURED + KILLED IN DIFFERENT COUNTY VS YEAR") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+
+# Separting on the basis of people injured and people killed
+
+a1= ggplot(data=new_data3,mapping = aes(y=V1,x=factor(Group.2), fill=Group.1))+
+  geom_bar(stat = "identity", position = position_stack(reverse=TRUE)) + 
+  guides(fill = guide_legend(reverse=TRUE)) + 
+  labs(title = "NO OF PEOPLE INJURED IN DIFFERENT COUNTY VS YEAR") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+a2=ggplot(data=new_data3,mapping = aes(y=V2,x=factor(Group.2), fill=Group.1))+
+  geom_bar(stat = "identity", position = position_stack(reverse=TRUE)) + 
+  guides(fill = guide_legend(reverse=TRUE)) + 
+  labs(title = "NO OF PEOPLE KILLED IN DIFFERENT COUNTY VS YEAR") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+ggarrange( a1,a2,
+           labels = c("A", "B"),
+           ncol = 2, nrow = 1)
+# -----------/-------------------
+
+# Line plot of no of people injured and killed vs year
+# ----------------------/-------------
+new_data4 = aggregate(cbind(data$NUMBER.OF.PERSONS.INJURED, data$NUMBER.OF.PERSONS.KILLED, 
+                            data$NUMBER.OF.PEDESTRIANS.INJURED, data$NUMBER.OF.PEDESTRIANS.KILLED, 
+                            data$NUMBER.OF.CYCLIST.INJURED, data$NUMBER.OF.CYCLIST.KILLED,
+                            data$NUMBER.OF.MOTORIST.INJURED, data$NUMBER.OF.MOTORIST.KILLED), 
+                      list(data$CRASH.DATE.YEAR),FUN = sum)
+
+b1 = ggplot(data=new_data4,mapping = aes(y=V1,x=factor(Group.1),group=1)) + 
+  geom_point(size = 2)+
+  geom_line(colour = "red")+
+  labs(title = "TOTAL NUMBER OF PEOPLE INJURED VS YEAR") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+b2 = ggplot(data=new_data4,mapping = aes(y=V2,x=factor(Group.1),group=1)) + 
+  geom_point(size = 2)+
+  geom_line(colour = "red")+
+  labs(title = "TOTAL NUMBER OF PEOPLE KILLED VS YEAR") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+ggarrange( b1,b2,
+           labels = c("A", "B"),
+           ncol = 2, nrow = 1)
+#-----------------/--------------------
+
+# Bar plots by month and by year of number of people injured
+#---------/--------------
+year2012 = subset(data,data$CRASH.DATE.YEAR==2012)
+year2013 = subset(data,data$CRASH.DATE.YEAR==2013)
+year2014 = subset(data,data$CRASH.DATE.YEAR==2014)
+year2015 = subset(data,data$CRASH.DATE.YEAR==2015)
+year2016 = subset(data,data$CRASH.DATE.YEAR==2016)
+year2017 = subset(data,data$CRASH.DATE.YEAR==2017)
+year2018 = subset(data,data$CRASH.DATE.YEAR==2018)
+year2019 = subset(data,data$CRASH.DATE.YEAR==2019)
+year2020 = subset(data,data$CRASH.DATE.YEAR==2020)
+year2021 = subset(data,data$CRASH.DATE.YEAR==2021)
+year2022 = subset(data,data$CRASH.DATE.YEAR==2022)
+
+
+data_2012 = aggregate(cbind(year2012$NUMBER.OF.PERSONS.INJURED, year2012$NUMBER.OF.PERSONS.KILLED), 
+                      list(year2012$CRASH.DATE.MONTH),FUN = sum)
+data_2013 = aggregate(cbind(year2013$NUMBER.OF.PERSONS.INJURED, year2013$NUMBER.OF.PERSONS.KILLED), 
+                      list(year2013$CRASH.DATE.MONTH),FUN = sum)
+data_2014 = aggregate(cbind(year2014$NUMBER.OF.PERSONS.INJURED, year2014$NUMBER.OF.PERSONS.KILLED), 
+                      list(year2014$CRASH.DATE.MONTH),FUN = sum)
+data_2015 = aggregate(cbind(year2015$NUMBER.OF.PERSONS.INJURED, year2015$NUMBER.OF.PERSONS.KILLED), 
+                      list(year2015$CRASH.DATE.MONTH),FUN = sum)
+data_2016 = aggregate(cbind(year2016$NUMBER.OF.PERSONS.INJURED, year2016$NUMBER.OF.PERSONS.KILLED), 
+                      list(year2016$CRASH.DATE.MONTH),FUN = sum)
+data_2017 = aggregate(cbind(year2018$NUMBER.OF.PERSONS.INJURED, year2018$NUMBER.OF.PERSONS.KILLED), 
+                       list(year2018$CRASH.DATE.MONTH),FUN = sum)
+data_2018 = aggregate(cbind(year2017$NUMBER.OF.PERSONS.INJURED, year2017$NUMBER.OF.PERSONS.KILLED), 
+                       list(year2017$CRASH.DATE.MONTH),FUN = sum)
+data_2019 = aggregate(cbind(year2019$NUMBER.OF.PERSONS.INJURED, year2019$NUMBER.OF.PERSONS.KILLED), 
+                       list(year2019$CRASH.DATE.MONTH),FUN = sum)
+data_2020 = aggregate(cbind(year2020$NUMBER.OF.PERSONS.INJURED, year2020$NUMBER.OF.PERSONS.KILLED), 
+                       list(year2020$CRASH.DATE.MONTH),FUN = sum)
+data_2021 = aggregate(cbind(year2021$NUMBER.OF.PERSONS.INJURED, year2021$NUMBER.OF.PERSONS.KILLED), 
+                       list(year2021$CRASH.DATE.MONTH),FUN = sum)
+# data_2022 = aggregate(cbind(year2022$NUMBER.OF.PERSONS.INJURED, year2022$NUMBER.OF.PERSONS.KILLED), 
+#                        list(year2022$CRASH.DATE.MONTH),FUN = sum)
+
+c1 = ggplot(data=data_2012,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2012") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+
+c2 = ggplot(data=data_2013,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2013") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+
+c3 = ggplot(data=data_2014,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2014") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+c4 = ggplot(data=data_2015,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2015") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+c5 = ggplot(data=data_2016,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2016") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+c6 = ggplot(data=data_2017,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2017") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+c7 = ggplot(data=data_2018,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2018") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45,hjust=1))
+
+c8 = ggplot(data=data_2019,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2019") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45, hjust=1))
+
+c9 = ggplot(data=data_2020,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2020") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45, hjust=1))
+
+c10 = ggplot(data=data_2021,mapping = aes(y=V1,x=Group.1,group=1))+
+  geom_bar(stat = "identity", fill="lightblue") + 
+  geom_point(size=2)+
+  geom_line(colour ="red")+
+  labs(title = "2021") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 45, hjust=1))
+
+# c11 = ggplot(data=data_2022,mapping = aes(y=V1,x=Group.1,group=1))+
+#   geom_bar(stat = "identity", fill="lightblue") + 
+#   geom_point(size=2)+
+#   geom_line(colour ="red")+
+#   labs(title = "NUMBER OF PEOPLE INJURED IN 2022") +
+#   theme(axis.title.x=element_blank(),axis.title.y=element_blank(),legend.title=element_blank())
+
+plot <- ggarrange( c1,c2,c3,c4,c5,c6,c7,c8,c9,c10,
+                   ncol = 5, nrow = 2)
+
+annotate_figure(plot, top = text_grob("Number of People Injured", 
+                                      color = "red", face = "bold", size = 14))
+#----------------------/--------------------
+
+# Barplot for contributing factors vs people injured or killed
+#------------------/-------------------
+library(dplyr)
+library(tidyverse)
+library(ggpubr)
+factors_injured <- data  %>%
+  arrange(desc(data$NUMBER.OF.PERSONS.INJURED)) %>%
+  slice(1:20) 
+
+factors_killed <- data  %>%
+  arrange(desc(data$NUMBER.OF.PERSONS.KILLED)) %>%
+  slice(1:20)
+
+f1 = ggplot(data=factors_injured,mapping = aes(y=NUMBER.OF.PERSONS.INJURED,
+                                          x=reorder(CONTRIBUTING.FACTOR.VEHICLE.1,NUMBER.OF.PERSONS.INJURED)))+
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Contributing factors for people getting injured") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 90,hjust=1))
+
+f2 = ggplot(data=factors_killed,mapping = aes(y=NUMBER.OF.PERSONS.KILLED,
+                               x=reorder(CONTRIBUTING.FACTOR.VEHICLE.1,NUMBER.OF.PERSONS.KILLED)))+
+  geom_bar(stat = "identity", fill = "red") +
+  labs(title = "Contributing factors for people getting killed") +
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),axis.text.x = element_text(angle = 90,hjust=1))
+
+ggarrange(f1,f2,
+          nrow = 2,ncol= 1)
+#----------------------/----------------------
+
+
+# Barplot for vehicle
+#------------------/----------------
+vehicle = aggregate(cbind(data$NUMBER.OF.PERSONS.INJURED, data$NUMBER.OF.PERSONS.KILLED), 
+                       list(data$VEHICLE.TYPE.CODE.1),FUN = sum)
+
+library(dplyr)
+vehicle_injured <- vehicle  %>%
+  arrange(desc(V1)) %>%
+  slice(1:20) 
+
+vehicle_killed <- vehicle  %>%
+  arrange(desc(V2)) %>%
+  slice(1:20)
+
+
+k1 = vehicle_injured %>% ggplot(aes(y= V1,x=reorder(Group.1,V1)))+
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "People Injured by the Vehicle") +
+  geom_col(aes(fill = Group.1))+
+  coord_flip()+
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),legend.position = "none")+
+  geom_text(aes(label=V1), size = 3, position = position_stack(vjust = 0.5))
+
+k2 = vehicle_killed %>% ggplot(aes(y= V2,x=reorder(Group.1,V2)))+
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "People killed by the Vehicle") +
+  geom_col(aes(fill = Group.1))+
+  coord_flip()+
+  theme(axis.title.x=element_blank(),axis.title.y=element_blank(),
+        legend.title=element_blank(),legend.position = "none")+
+  geom_text(aes(label=V2), size = 3, position = position_stack(vjust = 0.5))
+
+ggarrange(k1,k2)
+#------------------/----------------------
+
+
+# Reset to base library
+pacman::p_unload("all")
